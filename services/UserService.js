@@ -17,9 +17,9 @@ export default class UserService {
                 const {accessToken, refreshToken} = await TokenService.generateTokens(user)
                 user.sessions.push({accessToken, refreshToken})
                 await user.save()
-                res.set('accessToken', accessToken);
-                res.set('refreshToken', refreshToken);
-                res.status(200).json(new userDto(user))
+                res.setHeader('accessToken', accessToken);
+                res.setHeader('refreshToken', refreshToken);
+                res.status(200).json(user._id)
             }
             else {
                 res.status(409).send("User already exists")
@@ -39,9 +39,9 @@ export default class UserService {
                     const {accessToken, refreshToken} = await TokenService.generateTokens(user)
                     sameUser.sessions.push({accessToken, refreshToken})
                     await sameUser.save()
-                    res.set('accessToken', accessToken);
-                    res.set('refreshToken', refreshToken);
-                    res.status(200).json(new userDto(user))
+                    res.setHeader('access-token', accessToken);
+                    res.setHeader('refresh-token', refreshToken);
+                    res.status(200).json(sameUser._id)
                 }
                 else {
                     res.status(404).send("Wrong data or user doesn't exist")
@@ -52,6 +52,26 @@ export default class UserService {
             }
         }catch (e) {
             console.error(e)
+        }
+    }
+
+    static async getUser(id, res) {
+        try{
+            const user = await User.findById(id)
+            res.status(200).json(new userDto(user))
+        }catch (e) {
+            console.error(e)
+            res.status(404).send("User not found")
+        }
+    }
+
+    static async logOut(id, res) {
+        try{
+            const user = await User.findById(id)
+            res.status(200).json(new userDto(user))
+        }catch (e) {
+            console.error(e)
+            res.status(404).send("User not found")
         }
     }
 }

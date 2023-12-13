@@ -21,4 +21,24 @@ export default class UserController {
         }
         return res
     }
+
+    static async getUser(req, res) {
+        try{
+            const {id} = req.params
+            await userService.getUser(id, res)
+        }catch (e) {
+            res.status(500).end()
+        }
+        return res
+    }
+
+    static async logOut(req, res) {
+        try{
+            const {id} = req.params
+            await userService.logOut(id, res)
+        }catch (e) {
+            res.status(500).end()
+        }
+        return res
+    }
 }

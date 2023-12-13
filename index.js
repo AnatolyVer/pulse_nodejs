@@ -28,8 +28,14 @@ app.use(cookieParser('key'))
 app.use(express.json())
 app.use(cors({
   origin: '*',
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'access-token', 'refresh-token'],
   credentials: true,
 }));
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, access-token, refresh-token');
+  res.header('Access-Control-Expose-Headers', 'access-token, refresh-token');
+  next();
+});
 
 /*-------------------------- ROUTING --------------------------*/
 
