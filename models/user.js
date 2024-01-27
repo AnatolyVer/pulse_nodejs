@@ -29,6 +29,13 @@ const userSchema = new Schema({
     chats:{
         type:[String],
         default:[]
+    },
+    online:{
+        type:Boolean,
+        default:false
+    },
+    last_seen:{
+        type:Date
     }
 });
 

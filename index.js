@@ -8,6 +8,7 @@ import dotenv from 'dotenv'
 
 import WebSocketManager from './WebSocket.js';
 import userRouter from "./routes/users.js";
+import chatRouter from "./routes/chat.js";
 
 /*-------------------------- SETTINGS -------------------------*/
 
@@ -16,7 +17,6 @@ const app = express()
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000
 const MONGO_URL = process.env.NODE_ENV === "development" ? process.env.MONGO_URL_DEV : process.env.MONGO_URL_PROD
-
 
 if (process.env.NODE_ENV !== "test"){
   mongoose.set('strictQuery', true)
@@ -40,10 +40,12 @@ app.use((req, res, next) => {
 /*-------------------------- ROUTING --------------------------*/
 
 app.use('/user', userRouter)
+app.use('/chat', chatRouter)
+
 
 /*-------------------------- RUNNING SERVER --------------------------*/
 
-new WebSocketManager(server);
+export const ws = new WebSocketManager(server);
 
 try {
   server.listen(PORT, () => {
@@ -53,4 +55,3 @@ try {
   console.error("An error occurred while starting the server:", error);
 }
 
-export default server

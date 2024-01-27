@@ -7,12 +7,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+../pulse_fullstack/backend/node_modules
 dist
 dist-ssr
 *.local
-
 *.env
+pulse-410414-488f512f415a.json
 
 # Editor directories and files
 .vscode/*

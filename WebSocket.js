@@ -1,4 +1,5 @@
 import { WebSocketServer} from 'ws';
+import User from "./models/user.js";
 const EVENT_CONNECTION = 'connection';
 const EVENT_MESSAGE = 'message';
 const EVENT_CLOSE = 'close';
@@ -7,22 +8,22 @@ class WebSocketManager {
 
     wss
     clients
-    rooms
 
     constructor(server) {
         this.wss = new WebSocketServer({ server });
         this.clients = {};
-        this.rooms = {};
 
         this.wss.on(EVENT_CONNECTION, (socket, req) => this.onConnection(socket, req));
     }
 
     async onConnection(socket, req) {
-        console.log('Connection is opened');
-        const userID = this.parseRequestParameters(req.url.substr(1));
+        const _id = this.parseRequestParameters(req.url.substring(1));
+        this.clients[_id] = socket
+        await User.findOneAndUpdate({_id}, { $set: { online: true } })
 
         socket.on(EVENT_MESSAGE, async (message) => {
-            const { type, payload } = JSON.parse(message)
+            console.log(JSON.parse(message))
+          /*  const { type, payload } = JSON.parse(message)
             const { projectId, id, data } = payload;
             try {
                 switch (type) {
@@ -32,12 +33,15 @@ class WebSocketManager {
                 console.error(e);
             }
 
-            this.sendMessageToRoom(socket, projectId, JSON.stringify({ type, payload }));
+            this.sendMessageToRoom(socket, projectId, JSON.stringify({ type, payload }));*/
         });
 
-        socket.on(EVENT_CLOSE, () => {
-            this.closeSocket(socket);
-        });
+        socket.on(EVENT_CLOSE, () => this.closeSocket(socket));
+    }
+
+    sendMessage(_id, message) {
+        if (this.clients[_id])
+        this.clients[_id].send(JSON.stringify(message));
     }
 
     parseRequestParameters(url){
@@ -45,50 +49,20 @@ class WebSocketManager {
         return id;
     }
 
-    addClientToRoom(clientId, roomName) {
-        if (!this.rooms.hasOwnProperty(roomName)) {
-            this.rooms[roomName] = new Set();
-        }
-        this.rooms[roomName].add(clientId);
-    }
-
-    getClientIDBySocket(socket){
+    /*getClientIDBySocket(socket){
         for (const id in this.clients) {
             if (this.clients.hasOwnProperty(id) && this.clients[id].socket === socket) {
                 return id;
             }
         }
         return undefined;
-    }
+    }*/
 
-    sendMessageToRoom(socket, projectId, message) {
-        if (this.rooms.hasOwnProperty(projectId)) {
-            this.rooms[projectId].forEach((clientID) => {
-                const client = this.clients[clientID];
-                if (client && client.socket !== socket) {
-                    client.socket.send(message);
-                }
-            });
-        }
-    }
-
-    removeClientFromRoom(clientId, roomName) {
-        const room = this.rooms[roomName];
-        if (room) {
-            room.delete(clientId);
-            if (room.size === 0) {
-                delete this.rooms[roomName];
-            }
-        }
-    }
-
-    closeSocket(socket) {
+    async closeSocket(socket) {
         for (const key in this.clients) {
-            if (this.clients[key].socket === socket) {
-                const rooms = this.clients[key].rooms;
-                rooms.forEach((room) => this.removeClientFromRoom(key, room));
+            if (this.clients[key] === socket) {
+                await User.findOneAndUpdate({_id:key}, { $set: { online: false, last_seen: new Date()}})
                 delete this.clients[key];
-                console.log('Connection is closed');
                 return;
             }
         }
